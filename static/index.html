@@ -1,0 +1,1154 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cabinet Cutlist</title>
+<style>
+  :root {
+    --bg: #f5f4f0; --panel: #ffffff; --ink: #1d2327; --muted: #667075; --line: #dcd9d0;
+    --accent: #1f6f5c; --accent-ink: #ffffff; --warn: #b4540a; --warn-bg: #fdf1e3; --err: #a32020;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #15181a; --panel: #1e2326; --ink: #e8eaea; --muted: #97a1a6; --line: #333b3f;
+            --accent: #3fb59b; --accent-ink: #08201a; --warn: #f0a25a; --warn-bg: #2e2418; --err: #ff8a8a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 18px 24px 10px; display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  header h1 { font-size: 20px; margin: 0; letter-spacing: .2px; }
+  header span { color: var(--muted); font-size: 13px; }
+  main { max-width: 1280px; margin: 0 auto; padding: 0 16px 60px; display: grid; gap: 16px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; }
+  h2 { font-size: 16px; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+  h2 .n { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+          background: var(--accent); color: var(--accent-ink); font-size: 13px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  button, .btn { font: inherit; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--line);
+         background: var(--panel); color: var(--ink); cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  button:disabled { opacity: .5; cursor: default; }
+  select, input[type=text], input[type=number] { font: inherit; padding: 5px 7px; border: 1px solid var(--line);
+         border-radius: 6px; background: var(--bg); color: var(--ink); }
+  input[type=number] { width: 78px; }
+  .drop { border: 2px dashed var(--line); border-radius: var(--radius); padding: 22px; text-align: center;
+          color: var(--muted); flex: 1 1 320px; cursor: pointer; }
+  .drop.over { border-color: var(--accent); color: var(--ink); }
+  .note { color: var(--muted); font-size: 13px; }
+  .status { font-size: 13px; padding: 6px 10px; border-radius: 6px; background: var(--bg); }
+  .status.err { color: var(--err); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .4px; position: sticky; top: 0; background: var(--panel); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .flag { display: inline-block; font-size: 12px; padding: 1px 7px; border-radius: 99px; background: var(--warn-bg); color: var(--warn); margin: 1px 3px 1px 0; }
+  .raw { font-size: 12px; color: var(--muted); max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  details { margin-top: 12px; }
+  summary { cursor: pointer; font-weight: 600; }
+  .settings { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px 18px; margin-top: 10px; }
+  .settings label { display: grid; gap: 3px; font-size: 13px; color: var(--muted); }
+  .settings input[type=text], .settings input[type=number] { width: 100%; }
+  .settings label.chk { grid-template-columns: auto 1fr; align-items: center; gap: 8px; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 14px; flex-wrap: wrap; }
+  .tabs button { border: none; border-bottom: 3px solid transparent; border-radius: 0; background: none; padding: 8px 14px; }
+  .tabs button.on { border-bottom-color: var(--accent); font-weight: 600; }
+  .kpis { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .kpi { background: var(--bg); border-radius: 8px; padding: 8px 14px; }
+  .kpi b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+  .kpi small { color: var(--muted); }
+  #view3d { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; }
+  #canvasWrap { position: relative; height: 520px; background: linear-gradient(#e9eef0, #cfd7da); border-radius: 8px; overflow: hidden; }
+  @media (prefers-color-scheme: dark) { #canvasWrap { background: linear-gradient(#2a3236, #1a2023); } }
+  #canvasWrap canvas { display: block; width: 100%; height: 100%; }
+  #dims { position: absolute; left: 10px; bottom: 8px; font-size: 12px; color: #333; background: rgba(255,255,255,.75); padding: 2px 8px; border-radius: 6px; }
+  #partList { max-height: 520px; overflow: auto; }
+  #partList tr:hover td { background: var(--bg); }
+  .sheetbox { margin: 0 0 18px; }
+  .sheetbox svg { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+  .warnbox { background: var(--warn-bg); color: var(--warn); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; }
+  .hidden { display: none !important; }
+  @media (max-width: 900px) { #view3d { grid-template-columns: 1fr; } #partList { max-height: 260px; } #side { max-height: none; } }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: none; border-radius: 0; padding: 5px 10px; background: var(--panel); }
+  .seg button.on { background: var(--accent); color: var(--accent-ink); }
+  .swatches { display: inline-flex; gap: 6px; align-items: center; }
+  .swatch { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; padding: 0; }
+  .swatch.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+  button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--panel)); }
+  #side { display: flex; flex-direction: column; gap: 10px; max-height: 520px; overflow: auto; font-size: 13px; }
+  #tree details { border-bottom: 1px solid var(--line); }
+  #tree summary { display: flex; align-items: center; gap: 6px; padding: 4px 4px; cursor: pointer; font-weight: 600; }
+  #tree summary .cnt { color: var(--muted); font-weight: 400; margin-left: 4px; }
+  .prow { display: flex; align-items: center; gap: 6px; padding: 2px 6px 2px 18px; cursor: pointer; }
+  .prow:hover { background: var(--bg); }
+  .prow.sel { background: color-mix(in srgb, var(--accent) 22%, transparent); font-weight: 600; }
+  .prow .sz { margin-left: auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .eye { border: none; background: none; padding: 0 4px; cursor: pointer; font-size: 14px; margin-left: auto; color: var(--accent); }
+  .prow .eye { margin-left: 0; }
+  .eye.off { opacity: .3; }
+  #props { border-top: 1px solid var(--line); padding-top: 8px; }
+  .propgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 6px 0; }
+  .propgrid div { background: var(--bg); border-radius: 6px; padding: 4px 8px; font-variant-numeric: tabular-nums; }
+  .propgrid small { display: block; color: var(--muted); font-size: 11px; }
+  .tex { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .tex button { width: 34px; height: 34px; padding: 0; border-radius: 6px; border: 2px solid var(--line); background-size: cover; background-position: center; }
+  .tex button.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+  tr.sel td { background: color-mix(in srgb, var(--accent) 22%, transparent); font-weight: 600; }
+  #partList tr { cursor: pointer; }
+  #canvasWrap canvas { cursor: crosshair; }
+  #selInfo { min-height: 22px; margin: 8px 0 0; }
+  #cabMsg { margin: 8px 0; }
+  #editBox { margin: 0 0 12px; }
+  #editBox summary { font-size: 14px; }
+  #edit { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px 12px; margin: 10px 0; }
+  #edit label { display: grid; gap: 2px; font-size: 12px; color: var(--muted); }
+  #edit input, #edit select { width: 100%; }
+  #labelGrid { display: grid; grid-template-columns: repeat(auto-fill, 90mm); gap: 3mm; }
+  .label { width: 90mm; height: 52mm; border: 1px solid #444; border-radius: 2mm; padding: 2.5mm 3mm; background: #fff; color: #000;
+           display: grid; grid-template-rows: auto auto auto auto 1fr; break-inside: avoid; page-break-inside: avoid; overflow: hidden; }
+  .label .lh { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #000; padding-bottom: 1mm; }
+  .label .lh b { font-size: 6mm; }
+  .label .lh span { font-size: 3.4mm; }
+  .label .ln { font-size: 3.6mm; margin-top: 1mm; }
+  .label .ls { font-size: 6.2mm; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .label .lm { font-size: 3.2mm; color: #333; }
+  .label .lf { display: flex; align-items: flex-end; justify-content: space-between; gap: 3mm; font-size: 3.2mm; }
+  .label .lf svg { width: 22mm; height: 13mm; }
+  .cutlist { margin: 6px 0 0; padding-left: 22px; font-size: 13px; columns: 2 320px; }
+  .cutlist li { break-inside: avoid; }
+  @media print {
+    body { background: #fff; color: #000; }
+    header button, #inputSection, .tabs, .noprint { display: none !important; }
+    section { border: none; padding: 0; }
+    .tabpane { display: block !important; page-break-before: always; }
+    #canvasWrap { display: none; }
+    #tableSection, #editBox, #selInfo, #viewTools, #side { display: none !important; }
+    #tlabels { display: none !important; }
+    body.print-labels .tabpane { display: none !important; }
+    body.print-labels #tlabels { display: block !important; page-break-before: auto; }
+    body.print-labels header { display: none !important; }
+    body.print-labels #kpis, body.print-labels #warnings, body.print-labels #results > h2 { display: none !important; }
+    #labelGrid { gap: 2mm; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Cabinet Cutlist</h1>
+  <span>PDF schedule â†’ cabinets â†’ 3D preview, cut list, edge banding, hardware and board layouts</span>
+</header>
+
+<main>
+  <section id="inputSection">
+    <h2><span class="n">1</span> Import a schedule</h2>
+    <div class="row" style="align-items:stretch">
+      <label class="drop" id="drop">
+        <input id="file" type="file" accept="application/pdf" hidden>
+        <div><b>Drop a PDF here</b> or click to choose one</div>
+        <div class="note" id="fileName">Scanned or typed cabinet schedules, up to 30 MB</div>
+      </label>
+      <div style="display:grid; gap:10px; align-content:center">
+        <label class="note">Dimension order on the drawing<br>
+          <select id="order">
+            <option value="WHD" selected>Width Ã— Height Ã— Depth</option>
+            <option value="WDH">Width Ã— Depth Ã— Height</option>
+            <option value="HWD">Height Ã— Width Ã— Depth</option>
+            <option value="DWH">Depth Ã— Width Ã— Height</option>
+          </select>
+        </label>
+        <div class="row">
+          <button class="primary" id="parseBtn" disabled>Read schedule</button>
+          <button class="primary" id="drawBtn" disabled title="Vector elevation drawings, any sheet size (A1, A0, A3)">Read drawing</button>
+          <button id="sampleBtn">Load sample cabinets</button>
+        </div>
+      </div>
+    </div>
+    <p class="status hidden" id="parseStatus"></p>
+    <div id="bespoke" class="warnbox hidden"></div>
+  </section>
+
+  <section id="tableSection">
+    <h2><span class="n">2</span> Check the cabinets</h2>
+    <p class="note" style="margin-top:-4px">Scanned drawings are never read perfectly. Correct anything that looks wrong; anything the reader was unsure about is flagged. Sizes are in mm.</p>
+    <div style="overflow:auto; max-height: 420px">
+      <table id="cabTable">
+        <thead><tr>
+          <th>Ref</th><th>Type</th><th class="num">W</th><th class="num">H</th><th class="num">D</th>
+          <th class="num">Qty</th><th class="num">Doors</th><th class="num">Drawers</th><th class="num">Shelves</th>
+          <th>Notes</th><th></th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="addRow">+ Add cabinet</button>
+      <button id="rawBtn" class="hidden">Show text read from PDF</button>
+    </div>
+    <pre id="rawText" class="hidden note" style="max-height:200px; overflow:auto; white-space:pre-wrap"></pre>
+
+    <details>
+      <summary>Materials and construction settings</summary>
+      <div class="settings" id="settings"></div>
+    </details>
+
+    <div class="row" style="margin-top:14px">
+      <button class="primary" id="genBtn">Generate cut list</button>
+      <span class="status hidden" id="genStatus"></span>
+    </div>
+  </section>
+
+  <section id="results" class="hidden">
+    <h2><span class="n">3</span> Results</h2>
+    <div class="kpis" id="kpis"></div>
+    <div id="warnings"></div>
+    <div class="tabs noprint" id="tabs">
+      <button data-tab="t3d" class="on">3D preview</button>
+      <button data-tab="tcut">Cut list</button>
+      <button data-tab="tband">Edge banding &amp; hardware</button>
+      <button data-tab="tsheets">Board layouts</button>
+      <button data-tab="tlabels">Labels</button>
+    </div>
+
+    <div class="tabpane" id="t3d">
+      <div class="row" style="margin-bottom:10px">
+        <label>Cabinet <select id="cabPick"></select></label>
+        <label class="row" style="gap:6px"><input type="checkbox" id="hideFronts"> Hide doors &amp; drawer fronts</label>
+        <span class="note">Drag to rotate, scroll to zoom, right-drag to pan. Click a part to select it; click again to select the part behind it.</span>
+      </div>
+      <div id="cabMsg" class="warnbox hidden"></div>
+      <details open id="editBox" class="noprint">
+        <summary>Edit this cabinet</summary>
+        <div id="edit"></div>
+        <div class="row">
+          <button id="dupBtn">Duplicate</button>
+          <button id="delBtn">Remove</button>
+          <span class="status hidden" id="edStatus"></span>
+          <span class="note">Changes rebuild the parts, cut list, boards and labels straight away.</span>
+        </div>
+      </details>
+      <div id="selInfo" class="note"></div>
+      <div class="row noprint" id="viewTools" style="margin-bottom:8px">
+        <div class="seg" id="modeSeg">
+          <button data-m="shaded">Shaded</button><button data-m="edges" class="on">Shaded + edges</button>
+          <button data-m="wire">Wireframe</button><button data-m="xray">X-ray</button>
+        </div>
+        <div class="seg" id="camSeg"><button data-c="persp" class="on">Orbit</button><button data-c="ortho">Ortho</button></div>
+        <span class="swatches" id="bgSwatches" title="Background"></span>
+        <label class="row" style="gap:6px"><input type="checkbox" id="showHw" checked> Hardware</label>
+        <button id="measureBtn">Measure</button><button id="measureClear" class="hidden">Clear</button>
+        <span class="note" id="measureHint"></span>
+      </div>
+      <div id="view3d">
+        <div id="canvasWrap"><div id="dims"></div></div>
+        <div id="side"><div id="tree"></div><div id="props"></div></div>
+      </div>
+    </div>
+
+    <div class="tabpane hidden" id="tcut">
+      <div class="row noprint" style="margin-bottom:10px">
+        <button id="csvCut">Download CSV</button>
+        <button id="printBtn">Print / save as PDF</button>
+        <span class="note">L is along the grain. Edges: number of long (L) and short (W) edges to band.</span>
+      </div>
+      <div style="overflow:auto"><table id="cutTable"><thead><tr>
+        <th>Material</th><th class="num">T</th><th>Part</th><th class="num">Length</th><th class="num">Width</th>
+        <th class="num">Qty</th><th class="num">Area/part (m²)</th><th class="num">Total area (m²)</th><th>Edge banding</th><th>Grain</th><th>Cabinets</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+
+    <div class="tabpane hidden" id="tband">
+      <h3 style="margin:0 0 8px">Edge banding</h3>
+      <table id="bandTable" style="max-width:520px"><thead><tr><th>Tape</th><th class="num">Net (m)</th><th class="num">With waste (m)</th></tr></thead><tbody></tbody></table>
+      <h3 style="margin:18px 0 8px">Hardware</h3>
+      <table id="hwTable" style="max-width:520px"><thead><tr><th>Item</th><th class="num">Qty</th></tr></thead><tbody></tbody></table>
+      <p class="note">Hinges: 2 per door up to 900 mm, 3 to 1500 mm, 4 to 2000 mm, 5 above. Check against your hardware supplier's chart.</p>
+      <div class="row noprint"><button id="csvHw">Download hardware CSV</button></div>
+    </div>
+
+    <div class="tabpane hidden" id="tsheets">
+      <div class="row noprint" style="margin-bottom:8px">
+        <label class="row" style="gap:6px"><input type="checkbox" id="showCuts" checked> Show saw-cut order</label>
+        <span class="note">Red numbered lines are the cuts, in order. Positions are measured from the top and left edges of the board, including the edge trim.</span>
+      </div>
+      <div id="sheetsOut"></div>
+    </div>
+
+    <div class="tabpane hidden" id="tlabels">
+      <div class="row noprint" style="margin-bottom:10px">
+        <button class="primary" id="printLabels">Print labels</button>
+        <label>Labels for
+          <select id="labelScope"><option value="all">all cabinets</option><option value="one">the selected cabinet only</option></select></label>
+        <span class="note" id="labelCount"></span>
+      </div>
+      <p class="note noprint" style="margin-top:0">One label per physical part, 90 Ã— 52 mm. The edge diagram shows how many long and short edges to band (heavy line = banded); check the edge itself against the drawing.</p>
+      <div id="labelGrid"></div>
+    </div>
+  </section>
+</main>
+
+<script src="/static/vendor/three.min.js"></script>
+<script src="/static/vendor/OrbitControls.js"></script>
+<script>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const TYPES = { base: "Base", sink: "Sink base", drawer: "Drawer base", wall: "Wall", tall: "Tall", bay: "Display bay" };
+const SAMPLE = [
+  { ref: "B1", type: "base", w: 600, h: 720, d: 560, qty: 1, doors: 2, drawers: 0, shelves: 1 },
+  { ref: "B2", type: "base", w: 800, h: 720, d: 560, qty: 2, doors: 2, drawers: 0, shelves: 1 },
+  { ref: "B3", type: "sink", w: 1000, h: 720, d: 560, qty: 1, doors: 2, drawers: 0, shelves: 0 },
+  { ref: "DB1", type: "drawer", w: 600, h: 720, d: 560, qty: 1, doors: 0, drawers: 3, shelves: 0 },
+  { ref: "W1", type: "wall", w: 600, h: 720, d: 320, qty: 1, doors: 1, drawers: 0, shelves: 2 },
+  { ref: "W2", type: "wall", w: 800, h: 720, d: 320, qty: 2, doors: 2, drawers: 0, shelves: 2 },
+  { ref: "T1", type: "tall", w: 600, h: 2100, d: 560, qty: 1, doors: 2, drawers: 0, shelves: 4 },
+];
+let rows = [], settings = {}, defaults = {}, result = null, pickedFile = null;
+
+// ---------- helpers ----------
+function el(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "class") e.className = v; else if (k === "text") e.textContent = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v);
+  }
+  for (const kid of kids) if (kid != null) e.append(kid);
+  return e;
+}
+function status(node, msg, isErr) {
+  node.textContent = msg || ""; node.classList.toggle("hidden", !msg); node.classList.toggle("err", !!isErr);
+}
+function download(name, text) {
+  const a = el("a", { href: URL.createObjectURL(new Blob([text], { type: "text/csv" })), download: name });
+  document.body.append(a); a.click(); a.remove();
+}
+const csvCell = v => { v = String(v ?? ""); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+const toCsv = (head, data) => [head, ...data].map(r => r.map(csvCell).join(",")).join("\n");
+
+// ---------- settings form ----------
+const SETTING_FIELDS = [
+  ["sheet_l", "Board length (mm)", "number"], ["sheet_w", "Board width (mm)", "number"],
+  ["kerf", "Saw kerf (mm)", "number"], ["trim", "Trim each edge (mm)", "number"],
+  ["t", "Carcass thickness", "number"], ["back_t", "Back thickness", "number"],
+  ["door_t", "Door thickness", "number"], ["plinth_h", "Plinth height", "number"],
+  ["reveal", "Door reveal / gap", "number"], ["carcass_material", "Carcass material", "text"],
+  ["front_material", "Door / front material", "text"], ["back_material", "Back material", "text"],
+  ["box_material", "Drawer box material", "text"], ["band_front_t", "Front tape (mm)", "number"],
+  ["band_carcass_t", "Carcass tape (mm)", "number"],
+  ["grain_carcass", "Carcass has grain (no rotating parts)", "check"],
+  ["grain_fronts", "Fronts have grain (no rotating parts)", "check"],
+  ["handles", "Count a handle per door / drawer", "check"],
+  ["bay_base_depth", "Display bay: drawer base depth (mm)", "number"],
+];
+function buildSettings() {
+  const box = $("#settings"); box.replaceChildren();
+  for (const [key, label, kind] of SETTING_FIELDS) {
+    const input = kind === "check"
+      ? el("input", { type: "checkbox" })
+      : el("input", { type: kind, step: "any" });
+    if (kind === "check") input.checked = !!settings[key]; else input.value = settings[key];
+    input.addEventListener("change", () => {
+      settings[key] = kind === "check" ? input.checked : kind === "number" ? Number(input.value) : input.value;
+    });
+    box.append(kind === "check" ? el("label", { class: "chk" }, input, label) : el("label", {}, label, input));
+  }
+}
+
+// ---------- cabinet table ----------
+function numInput(r, key, min = 0) {
+  const i = el("input", { type: "number", min, step: 1 });
+  i.value = r[key] ?? "";
+  i.addEventListener("input", () => { r[key] = i.value === "" ? null : Number(i.value); });
+  return i;
+}
+function renderTable() {
+  const tb = $("#cabTable tbody"); tb.replaceChildren();
+  rows.forEach((r, idx) => {
+    const ref = el("input", { type: "text", style: "width:70px" }); ref.value = r.ref;
+    ref.addEventListener("input", () => r.ref = ref.value);
+    const sel = el("select");
+    for (const [k, v] of Object.entries(TYPES)) sel.append(el("option", { value: k, text: v }));
+    sel.value = r.type; sel.addEventListener("change", () => r.type = sel.value);
+    const notes = el("td");
+    (r.flags || []).forEach(f => notes.append(el("span", { class: "flag", text: f })));
+    if (r.group) notes.append(el("span", { class: "flag", style: "background:var(--bg);color:var(--ink)", text: r.group }));
+    if (r.raw) notes.append(el("div", { class: "raw", title: r.raw, text: "â€œ" + r.raw + "â€" }));
+    tb.append(el("tr", {},
+      el("td", {}, ref), el("td", {}, sel),
+      el("td", { class: "num" }, numInput(r, "w", 1)), el("td", { class: "num" }, numInput(r, "h", 1)),
+      el("td", { class: "num" }, numInput(r, "d", 1)), el("td", { class: "num" }, numInput(r, "qty", 1)),
+      el("td", { class: "num" }, numInput(r, "doors")), el("td", { class: "num" }, numInput(r, "drawers")),
+      el("td", { class: "num" }, numInput(r, "shelves")), notes,
+      el("td", {}, el("button", { title: "Remove", text: "âœ•", onclick: () => { rows.splice(idx, 1); renderTable(); } }))));
+  });
+}
+
+// ---------- import ----------
+function setFile(f) {
+  pickedFile = f; $("#parseBtn").disabled = !f; $("#drawBtn").disabled = !f;
+  $("#fileName").textContent = f ? f.name + " (" + Math.round(f.size / 1024) + " KB)" : "Scanned or typed cabinet schedules, up to 30 MB";
+}
+$("#file").addEventListener("change", e => setFile(e.target.files[0] || null));
+const drop = $("#drop");
+["dragover", "dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) setFile(f); });
+
+$("#parseBtn").addEventListener("click", async () => {
+  const s = $("#parseStatus"); status(s, "Reading the PDF â€” scanned pages can take up to a minuteâ€¦");
+  $("#parseBtn").disabled = true;
+  try {
+    const fd = new FormData(); fd.append("file", pickedFile); fd.append("order", $("#order").value);
+    const res = await fetch("/api/parse", { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Could not read the PDF");
+    rows = data.rows; renderTable();
+    $("#rawText").textContent = data.text; $("#rawBtn").classList.remove("hidden");
+    status(s, rows.length
+      ? `Found ${rows.length} cabinet line${rows.length === 1 ? "" : "s"} (${data.source === "ocr" ? "scanned, read with OCR" : "typed text"}). Check them below.`
+      : "No cabinet lines found. Lines need sizes like â€œ600 x 720 x 560â€. Use â€œShow text read from PDFâ€ to see what was read, or add cabinets by hand.", !rows.length);
+  } catch (e) { status(s, e.message, true); }
+  finally { $("#parseBtn").disabled = !pickedFile; }
+});
+$("#drawBtn").addEventListener("click", async () => {
+  const s = $("#parseStatus"); status(s, "Reading the drawingâ€¦");
+  $("#drawBtn").disabled = true;
+  try {
+    const fd = new FormData(); fd.append("file", pickedFile);
+    const res = await fetch("/api/parse-drawing", { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Could not read the drawing");
+    rows = data.rows; renderTable();
+    const bb = $("#bespoke"); bb.replaceChildren();
+    if (data.bespoke.length) {
+      bb.classList.remove("hidden");
+      bb.append(el("b", { text: "Not in the cut list (curved or bespoke, needs templates or CNC):" }));
+      data.bespoke.forEach(x => bb.append(el("div", { text: `${x.name} â€” ${x.sheet}` + (x.nearby_sizes.length ? ` (sizes nearby: ${x.nearby_sizes.join(", ")} mm)` : "") })));
+    } else bb.classList.add("hidden");
+    const sh = data.sheets.map(x => `${x.title} (p${x.page}, ${x.size_mm[0]}Ã—${x.size_mm[1]} mm sheet)`).join("; ");
+    status(s, rows.length
+      ? `Read ${rows.length} bay/unit${rows.length === 1 ? "" : "s"} from ${sh}. Depths of the base units are not on the elevations, so ${$("#settings") ? "the base depth in settings" : "a default"} is used. Check the table.`
+      : "No elevation bays found. The drawing needs figured bay widths with thickness marks (e.g. 20 860 20) and a title like â€œELEVATION 01â€.", !rows.length);
+  } catch (e) { status(s, e.message, true); }
+  finally { $("#drawBtn").disabled = !pickedFile; }
+});
+$("#sampleBtn").addEventListener("click", () => { rows = SAMPLE.map(r => ({ ...r, flags: [] })); renderTable(); status($("#parseStatus"), ""); });
+$("#addRow").addEventListener("click", () => {
+  rows.push({ ref: "C" + (rows.length + 1), type: "base", w: 600, h: 720, d: 560, qty: 1, doors: 2, drawers: 0, shelves: 1, flags: [] });
+  renderTable();
+});
+$("#rawBtn").addEventListener("click", () => $("#rawText").classList.toggle("hidden"));
+
+// ---------- generate ----------
+let pickedRow = 0, selCode = null, hoverCode = null, curCab = null, placement = new Map();
+let sheetsDirty = true, labelsDirty = true;
+
+function buildBody() {
+  return {
+    cabinets: rows.map(r => ({ ref: r.ref, type: r.type, w: r.w, h: r.h, d: r.d || null, qty: r.qty || 1,
+                               doors: r.doors || 0, drawers: r.drawers || 0, shelves: r.shelves || 0,
+                               t: r.t || null, base_h: r.base_h || null, base_d: r.base_d || null,
+                               header_h: r.header_h || null, group: r.group || "" })),
+    settings,
+  };
+}
+async function runGenerate() {
+  const res = await fetch("/api/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(buildBody()) });
+  const data = await res.json();
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Check the cabinet values");
+  return data;
+}
+$("#genBtn").addEventListener("click", async () => {
+  const s = $("#genStatus");
+  const bad = rows.filter(r => !(r.w > 0 && r.h > 0));
+  if (!rows.length) return status(s, "Add at least one cabinet first.", true);
+  if (bad.length) return status(s, "Every cabinet needs a width and a height.", true);
+  status(s, "Workingâ€¦"); $("#genBtn").disabled = true;
+  try { pickedRow = 0; selCode = null; result = await runGenerate(); status(s, ""); renderResults({ scroll: true }); }
+  catch (e) { status(s, e.message, true); }
+  finally { $("#genBtn").disabled = false; }
+});
+
+// ---------- results ----------
+const fmtEdges = r => (r.edge_l || r.edge_w) ? [r.edge_l ? r.edge_l + "L" : "", r.edge_w ? r.edge_w + "W" : ""].filter(Boolean).join(" + ") : "â€”";
+const activeTab = () => { const b = document.querySelector("#tabs button.on"); return b ? b.dataset.tab : "t3d"; };
+function refreshLazyTab() {
+  const t = activeTab();
+  if (t === "tsheets" && sheetsDirty) { renderSheets(); sheetsDirty = false; }
+  if (t === "tlabels" && labelsDirty) { renderLabels(); labelsDirty = false; }
+}
+function buildPlacement() {
+  placement = new Map();
+  result.nesting.forEach(n => n.sheets.forEach(sh => sh.placed.forEach(p =>
+    placement.set(p.id, { sheet: sh.index, of: n.sheet_count, material: n.material, t: n.t }))));
+}
+function renderResults(opts = {}) {
+  $("#results").classList.remove("hidden");
+  buildPlacement();
+  const sm = result.summary;
+  const kp = $("#kpis"); kp.replaceChildren();
+  [[sm.cabinet_count, "cabinets"], [sm.panel_count, "panels"], [sm.sheet_count, "boards"]]
+    .forEach(([v, l]) => kp.append(el("div", { class: "kpi" }, el("b", { text: v }), el("small", { text: l }))));
+
+  const wb = $("#warnings"); wb.replaceChildren();
+  result.errors.forEach(e => wb.append(el("div", { class: "warnbox", text: "Skipped: " + e })));
+  result.cabinets.forEach(c => c.warnings.forEach(w => wb.append(el("div", { class: "warnbox", text: c.ref + ": " + w }))));
+  result.nesting.forEach(n => n.oversize.forEach(o =>
+    wb.append(el("div", { class: "warnbox", text: `${o.label} (${o.l} Ã— ${o.w}) does not fit on a board` }))));
+
+  const pick = $("#cabPick"); pick.replaceChildren();
+  rows.forEach((r, i) => pick.append(el("option", { value: i, text: `${r.ref || "?"} â€” ${TYPES[r.type] || r.type} ${r.w}Ã—${r.h}Ã—${r.d || "auto"}` })));
+  pickedRow = Math.max(0, Math.min(opts.keepRow ?? pickedRow, rows.length - 1));
+  pick.value = pickedRow;
+  show3d(pickedRow, { keepCamera: !!opts.keepCamera, keepEditor: !!opts.keepEditor });
+
+  const ct = $("#cutTable tbody"); ct.replaceChildren();
+  let prev = "";
+  result.cutlist.forEach(r => {
+    const grp = r.material + "|" + r.t;
+    const tr = el("tr", {},
+      el("td", { text: grp !== prev ? r.material : "" }), el("td", { class: "num", text: r.t }),
+      el("td", { text: r.name }), el("td", { class: "num", text: r.l }), el("td", { class: "num", text: r.w }),
+      el("td", { class: "num", text: r.qty }), el("td", { class: "num", text: r.area_m2.toFixed(4) }),
+      el("td", { class: "num", text: r.total_area_m2.toFixed(4) }), el("td", { text: fmtEdges(r) }),
+      el("td", { text: r.grain ? "Along L" : "Any" }), el("td", { text: r.refs.join(", ") }));
+    if (grp !== prev) tr.style.borderTop = "2px solid var(--line)";
+    prev = grp; ct.append(tr);
+  });
+  const bt = $("#bandTable tbody"); bt.replaceChildren();
+  result.banding.forEach(b => bt.append(el("tr", {}, el("td", { text: b.type }),
+    el("td", { class: "num", text: b.metres }), el("td", { class: "num", text: b.metres_with_waste }))));
+  const ht = $("#hwTable tbody"); ht.replaceChildren();
+  result.hardware.forEach(h => ht.append(el("tr", {}, el("td", { text: h.item }), el("td", { class: "num", text: h.qty }))));
+  sheetsDirty = labelsDirty = true; refreshLazyTab();
+  if (opts.scroll) $("#results").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// ---------- board layouts with saw-cut order ----------
+const SVGNS = "http://www.w3.org/2000/svg";
+function svg(tag, attrs = {}, text) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text != null) e.textContent = text; return e;
+}
+function hue(str) { let h = 0; for (const c of str) h = (h * 31 + c.charCodeAt(0)) % 360; return h; }
+const fmtCut = c => c.dir === "H" ? `Cut at ${c.pos} mm from the top edge, ${c.len} mm long`
+  : c.dir === "V" ? `Cut at ${c.pos} mm from the left edge, ${c.len} mm long`
+  : "This layout is not a simple edge-to-edge cutting plan; cut it by hand";
+function renderSheets() {
+  const out = $("#sheetsOut"); out.replaceChildren();
+  const S = result.settings, showCuts = $("#showCuts").checked;
+  result.nesting.forEach(n => {
+    out.append(el("h3", { style: "margin:16px 0 4px", text: `${n.material} â€” ${n.t} mm` }));
+    out.append(el("p", { class: "note", style: "margin:0 0 10px",
+      text: `${n.sheet_count} board${n.sheet_count === 1 ? "" : "s"} of ${S.sheet_l} Ã— ${S.sheet_w}, ${n.piece_count} parts, ${n.utilisation}% of board area used` }));
+    n.sheets.forEach(sh => {
+      const box = el("div", { class: "sheetbox" });
+      box.append(el("div", { class: "note", text: `Board ${sh.index} â€” ${sh.utilisation}% used` }));
+      const s = svg("svg", { viewBox: `0 0 ${S.sheet_l} ${S.sheet_w}` });
+      s.append(svg("rect", { x: 0, y: 0, width: S.sheet_l, height: S.sheet_w, fill: "#f4f1ea", stroke: "#999", "stroke-width": 3 }));
+      sh.placed.forEach(p => {
+        const g = svg("g");
+        const ref = p.label.split(" ")[0].split(".")[0];
+        g.append(svg("rect", { x: p.x, y: p.y, width: p.w, height: p.h, fill: `hsl(${hue(ref)} 45% 78%)`, stroke: "#333", "stroke-width": 2 }));
+        g.append(svg("title", {}, `${p.label}  ${p.rot ? p.h : p.w} Ã— ${p.rot ? p.w : p.h}${p.rot ? " (rotated)" : ""}`));
+        if (p.w > 150 && p.h > 70) {
+          const fs = Math.max(22, Math.min(46, p.h / 4, p.w / 9));
+          g.append(svg("text", { x: p.x + p.w / 2, y: p.y + p.h / 2 - fs * 0.1, "text-anchor": "middle", "font-size": fs, fill: "#111" }, p.label));
+          g.append(svg("text", { x: p.x + p.w / 2, y: p.y + p.h / 2 + fs * 1.0, "text-anchor": "middle", "font-size": fs * 0.8, fill: "#333" }, `${p.w} Ã— ${p.h}`));
+        }
+        s.append(g);
+      });
+      if (showCuts) (sh.cuts || []).filter(c => c.dir !== "?").forEach(c => {
+        const o = c.pos + S.kerf / 2;
+        const [x1, y1, x2, y2] = c.dir === "H" ? [c.from, o, c.to, o] : [o, c.from, o, c.to];
+        s.append(svg("line", { x1, y1, x2, y2, stroke: "#c0392b", "stroke-width": 5, "stroke-dasharray": "26 14" }));
+        const cx = c.dir === "H" ? c.from + 28 : o, cy = c.dir === "H" ? o : c.from + 28;
+        s.append(svg("circle", { cx, cy, r: 24, fill: "#c0392b" }));
+        s.append(svg("text", { x: cx, y: cy + 9, "text-anchor": "middle", "font-size": 26, "font-weight": 700, fill: "#fff" }, String(c.n)));
+      });
+      box.append(s);
+      if (sh.cuts && sh.cuts.length) {
+        const d = el("details", {}, el("summary", { class: "note", text: `Cutting order for board ${sh.index} (${sh.cuts.length} cuts)` }));
+        const ol = el("ol", { class: "cutlist" });
+        sh.cuts.forEach(c => ol.append(el("li", { text: `Stage ${c.stage}: ${fmtCut(c)}` })));
+        d.append(ol, el("p", { class: "note", text: `Square the board first: trim ${S.trim} mm from every edge. Allow ${S.kerf} mm for the saw kerf on the waste side of each cut.` }));
+        box.append(d);
+      }
+      out.append(box);
+    });
+  });
+}
+$("#showCuts").addEventListener("change", () => { if (result) renderSheets(); });
+
+// ---------- labels ----------
+function edgeSvg(p) {
+  const e = svg("svg", { viewBox: "0 0 60 36" });
+  e.append(svg("rect", { x: 5, y: 5, width: 50, height: 26, fill: "#f4f1ea", stroke: "#888", "stroke-width": 1 }));
+  const line = (x1, y1, x2, y2) => e.append(svg("line", { x1, y1, x2, y2, stroke: "#d9480f", "stroke-width": 3.2 }));
+  if (p.edge_l >= 1) line(5, 5, 55, 5);
+  if (p.edge_l >= 2) line(5, 31, 55, 31);
+  if (p.edge_w >= 1) line(5, 5, 5, 31);
+  if (p.edge_w >= 2) line(55, 5, 55, 31);
+  return e;
+}
+function renderLabels() {
+  const grid = $("#labelGrid"); grid.replaceChildren();
+  const list = $("#labelScope").value === "one" ? result.cabinets.filter(c => c.idx === pickedRow) : result.cabinets;
+  let n = 0;
+  list.forEach(c => {
+    for (let k = 0; k < c.qty; k++) {
+      const inst = c.qty > 1 ? `${c.ref}.${k + 1}` : c.ref;
+      c.panels.forEach(p => {
+        const pl = placement.get(`${inst}|${p.code}`);
+        grid.append(el("div", { class: "label" },
+          el("div", { class: "lh" }, el("b", { text: inst }), el("span", { text: p.code })),
+          el("div", { class: "ln", text: p.name }),
+          el("div", { class: "ls", text: `${p.l} Ã— ${p.w} Ã— ${p.t}` }),
+          el("div", { class: "lm", text: p.material + (p.grain ? " Â· grain along length" : "") }),
+          el("div", { class: "lf" }, edgeSvg(p),
+            el("span", { text: `Edges ${fmtEdges(p)}${pl ? " Â· Board " + pl.sheet + "/" + pl.of : ""}` }))));
+        n++;
+      });
+    }
+  });
+  $("#labelCount").textContent = `${n} label${n === 1 ? "" : "s"}`;
+}
+$("#labelScope").addEventListener("change", () => { if (result) renderLabels(); });
+$("#printLabels").addEventListener("click", () => {
+  renderLabels(); labelsDirty = false;
+  document.body.classList.add("print-labels"); window.print();
+});
+window.addEventListener("afterprint", () => document.body.classList.remove("print-labels"));
+
+// tabs
+$("#tabs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-tab]"); if (!b) return;
+  document.querySelectorAll("#tabs button").forEach(x => x.classList.toggle("on", x === b));
+  document.querySelectorAll(".tabpane").forEach(p => p.classList.toggle("hidden", p.id !== b.dataset.tab));
+  if (b.dataset.tab === "t3d") { resize3d(); }
+  if (result) refreshLazyTab();
+});
+$("#printBtn").addEventListener("click", () => window.print());
+$("#csvCut").addEventListener("click", () => download("cutlist.csv", toCsv(
+  ["Material", "Thickness", "Part", "Length", "Width", "Qty", "Edge L", "Edge W", "Grain", "Cabinets"],
+  result.cutlist.map(r => [r.material, r.t, r.name, r.l, r.w, r.qty, r.edge_l, r.edge_w, r.grain ? "Along L" : "Any", r.refs.join(" ")]))));
+$("#csvHw").addEventListener("click", () => download("hardware.csv", toCsv(["Item", "Qty"], result.hardware.map(h => [h.item, h.qty]))));
+
+// ---------- 3D viewer ----------
+const COLORS = { carcass: 0xe6d9bd, shelf: 0xf0e4c8, back: 0xb7a27d, plinth: 0x8a8d8f, front: 0x6f9bc4, drawerbox: 0xcdb892 };
+const FX_COLORS = { leg: 0x6b7075, hinge: 0xb9bec3, handle: 0x30343a, runner: 0x9aa0a6, pin: 0xc9a227, fixing: 0xc9a227 };
+const FX_NAMES = { leg: "Legs", hinge: "Hinges", handle: "Handles", runner: "Drawer runners", pin: "Shelf pins", fixing: "Cam / dowel fixings" };
+const GROUP_NAMES = { carcass: "Carcass", shelf: "Shelves", back: "Back panels", plinth: "Plinth", front: "Doors & fronts", drawerbox: "Drawer boxes" };
+const GROUP_ORDER = ["carcass", "shelf", "back", "plinth", "front", "drawerbox"];
+const BACKGROUNDS = [
+  { k: "default", css: "", swatch: "linear-gradient(#e9eef0,#cfd7da)" }, { k: "white", css: "#ffffff", swatch: "#ffffff" },
+  { k: "light", css: "#e9ecef", swatch: "#e9ecef" }, { k: "mid", css: "#9aa0a6", swatch: "#9aa0a6" },
+  { k: "dark", css: "#2b3036", swatch: "#2b3036", dark: true }, { k: "black", css: "#111214", swatch: "#111214", dark: true },
+];
+const TEXTURES = [
+  { id: "white", name: "White", color: "#f2f1ec" },
+  { id: "oak", name: "Oak", color: "#c9a46c", dark: "#a9824a", grain: true },
+  { id: "walnut", name: "Walnut", color: "#6b4630", dark: "#3f2618", grain: true },
+  { id: "grey", name: "Light grey", color: "#a9acb0" },
+  { id: "anthracite", name: "Anthracite", color: "#34383d" },
+  { id: "marble", name: "Marble", color: "#ecebe8", dark: "#9a9fa6", veins: true },
+];
+const customDefs = [], customTex = {};
+const materialLooks = {}, partLooks = {};
+const hiddenCodes = new Set(), hiddenKinds = new Set();
+let renderer, scene, persp, ortho, camera, controls, cabGroup, fxGroup, measureGroup, wrapEl, downXY = null;
+let viewMode = "edges", camKind = "persp", bgKey = "default", measuring = false, measurePts = [], lookScope = "part", scopePref = null;
+let meshByCode = {}, fxMeshes = [], lastShownRow = null, orthoSize = 3;
+const texCache = {}, thumbCache = {};
+
+function drawTexture(def) {
+  const c = document.createElement("canvas"); c.width = c.height = 256;
+  const g = c.getContext("2d");
+  g.fillStyle = def.color; g.fillRect(0, 0, 256, 256);
+  let seed = 7 + def.id.length * 97 + def.id.charCodeAt(0);
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  if (def.grain) {
+    for (let i = 0; i < 280; i++) {
+      const y = rnd() * 256; g.strokeStyle = def.dark; g.globalAlpha = 0.07 + rnd() * 0.22; g.lineWidth = 0.5 + rnd() * 1.6;
+      g.beginPath(); g.moveTo(0, y);
+      for (let x = 32; x <= 256; x += 32) g.lineTo(x, y + Math.sin(x / 40 + i) * 3 + (rnd() - 0.5) * 2);
+      g.stroke();
+    }
+  } else if (def.veins) {
+    for (let i = 0; i < 14; i++) {
+      g.strokeStyle = def.dark; g.globalAlpha = 0.12 + rnd() * 0.25; g.lineWidth = 0.6 + rnd() * 1.6;
+      g.beginPath(); let x = rnd() * 256, y = 0; g.moveTo(x, y);
+      while (y < 256) { x += (rnd() - 0.45) * 26; y += 14 + rnd() * 14; g.lineTo(x, y); }
+      g.stroke();
+    }
+  } else {
+    for (let i = 0; i < 2500; i++) { g.fillStyle = rnd() > 0.5 ? "#000" : "#fff"; g.globalAlpha = 0.03; g.fillRect(rnd() * 256, rnd() * 256, 2, 2); }
+  }
+  g.globalAlpha = 1;
+  return c;
+}
+function textureFor(id) {
+  if (customTex[id]) return customTex[id];
+  const def = TEXTURES.find(t => t.id === id); if (!def) return null;
+  if (!texCache[id]) {
+    const t = new THREE.CanvasTexture(drawTexture(def)); t.wrapS = t.wrapT = THREE.RepeatWrapping; texCache[id] = t;
+  }
+  return texCache[id];
+}
+function thumbFor(def) {
+  if (def.thumb) return def.thumb;
+  if (!thumbCache[def.id]) thumbCache[def.id] = drawTexture(def).toDataURL();
+  return thumbCache[def.id];
+}
+const bgDark = () => viewMode !== "wire" && !!(BACKGROUNDS.find(b => b.k === bgKey) || {}).dark;
+const lookFor = (cab, p) => partLooks[cab.ref + "|" + p.code] || materialLooks[p.material] || null;
+
+function init3d() {
+  wrapEl = $("#canvasWrap");
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  wrapEl.prepend(renderer.domElement);
+  scene = new THREE.Scene();
+  persp = new THREE.PerspectiveCamera(35, 1, 0.05, 50);
+  ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.05, 50);
+  camera = persp;
+  controls = new THREE.OrbitControls(persp, renderer.domElement);
+  controls.enableDamping = true;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8899aa, 0.85));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.7); sun.position.set(2, 3, 4); scene.add(sun);
+  const grid = new THREE.GridHelper(4, 40, 0x889399, 0xb4bcc0); grid.material.opacity = 0.5; grid.material.transparent = true;
+  scene.add(grid);
+  measureGroup = new THREE.Group(); scene.add(measureGroup);
+  new ResizeObserver(resize3d).observe(wrapEl);
+  const cv = renderer.domElement;
+  cv.addEventListener("pointerdown", e => { downXY = [e.clientX, e.clientY]; });
+  cv.addEventListener("pointerup", e => {
+    if (!downXY) return;
+    const moved = Math.hypot(e.clientX - downXY[0], e.clientY - downXY[1]); downXY = null;
+    if (moved <= 5 && e.button === 0) pickAt(e);
+  });
+  (function loop() { requestAnimationFrame(loop); if (wrapEl.offsetParent) { controls.update(); renderer.render(scene, camera); } })();
+}
+function fitOrtho() {
+  const w = wrapEl.clientWidth, h = wrapEl.clientHeight; if (!w || !h) return;
+  const asp = w / h;
+  ortho.left = -orthoSize * asp / 2; ortho.right = orthoSize * asp / 2; ortho.top = orthoSize / 2; ortho.bottom = -orthoSize / 2;
+  ortho.updateProjectionMatrix();
+}
+function resize3d() {
+  if (!renderer) return;
+  const w = wrapEl.clientWidth, h = wrapEl.clientHeight; if (!w || !h) return;
+  renderer.setSize(w, h, false); persp.aspect = w / h; persp.updateProjectionMatrix(); fitOrtho();
+}
+function setCam(kind) {
+  if (!renderer) return;
+  camKind = kind;
+  const old = camera, target = controls.target.clone();
+  camera = kind === "ortho" ? ortho : persp;
+  if (camera !== old) { camera.position.copy(old.position); camera.up.copy(old.up); }
+  fitOrtho(); controls.object = camera; controls.target.copy(target); camera.lookAt(target); controls.update();
+  document.querySelectorAll("#camSeg button").forEach(b => b.classList.toggle("on", b.dataset.c === kind));
+}
+
+// ----- picking and measuring
+function rayHits(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  const ndc = new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  const ray = new THREE.Raycaster(); ray.setFromCamera(ndc, camera);
+  return ray.intersectObjects(cabGroup.children.filter(m => m.visible), false);
+}
+function pickAt(e) {
+  if (!cabGroup) return;
+  const hits = rayHits(e);
+  if (measuring) return measureClick(hits);
+  if (!hits.length) return selectPart(null);
+  let code = hits[0].object.userData.code;
+  if (code === selCode && hits[1]) code = hits[1].object.userData.code;   // click again: part behind
+  selectPart(code, { scroll: true });
+}
+function snapPoint(hit) {
+  const m = hit.object, gp = m.geometry.parameters, pt = hit.point.clone();
+  let best = null, bd = 0.04;                       // snap to a corner within 40 mm
+  for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) {
+    const c = m.localToWorld(new THREE.Vector3(sx * gp.width / 2, sy * gp.height / 2, sz * gp.depth / 2));
+    const d = c.distanceTo(pt); if (d < bd) { bd = d; best = c; }
+  }
+  return best || pt;
+}
+function dot(p) {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(0.009, 12, 12), new THREE.MeshBasicMaterial({ color: 0xd9480f, depthTest: false }));
+  m.position.copy(p); m.renderOrder = 10; measureGroup.add(m);
+}
+function measureClick(hits) {
+  if (!hits.length) return;
+  const p = snapPoint(hits[0]); measurePts.push(p); dot(p);
+  if (measurePts.length < 2) { $("#measureHint").textContent = "Now click the second point."; return; }
+  const [a, b] = measurePts; measurePts = [];
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, b]), new THREE.LineBasicMaterial({ color: 0xd9480f, depthTest: false }));
+  line.renderOrder = 10; measureGroup.add(line);
+  const mm = Math.round(a.distanceTo(b) * 1000);
+  const cv = document.createElement("canvas"); cv.width = 192; cv.height = 64;
+  const g = cv.getContext("2d"); g.fillStyle = "#3b4cca"; g.beginPath(); g.roundRect ? g.roundRect(4, 8, 184, 48, 10) : g.rect(4, 8, 184, 48); g.fill();
+  g.fillStyle = "#fff"; g.font = "700 30px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(String(mm), 96, 33);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), depthTest: false }));
+  const dz = camKind === "ortho" ? orthoSize * 0.13 : a.distanceTo(b) * 0.0 + camera.position.distanceTo(a) * 0.13;
+  sp.scale.set(dz, dz / 3, 1); sp.position.copy(a.clone().add(b).multiplyScalar(0.5)); sp.renderOrder = 11; measureGroup.add(sp);
+  $("#measureHint").textContent = `${mm} mm. Click two more points to measure again.`;
+}
+function clearMeasure() {
+  measureGroup.children.slice().forEach(o => { measureGroup.remove(o); if (o.geometry) o.geometry.dispose(); });
+  measurePts = [];
+}
+$("#measureBtn").addEventListener("click", () => {
+  measuring = !measuring; $("#measureBtn").classList.toggle("on", measuring);
+  $("#measureClear").classList.toggle("hidden", !measuring);
+  $("#measureHint").textContent = measuring ? "Click two points. They snap to part corners." : "";
+  if (renderer) renderer.domElement.style.cursor = measuring ? "copy" : "";
+});
+$("#measureClear").addEventListener("click", () => { if (renderer) clearMeasure(); $("#measureHint").textContent = "Click two points. They snap to part corners."; });
+
+// ----- appearance: textures, modes, selection, visibility
+function repeatFor(box) {
+  const d = [box.w, box.h, box.d].sort((x, y) => y - x);
+  return [Math.max(d[0] / 600, 0.2), Math.max(d[1] / 600, 0.2)];
+}
+function styleLooks() {
+  if (!cabGroup) return;
+  cabGroup.children.forEach(m => {
+    const { panel } = m.userData, mat = m.material, look = lookFor(curCab, panel);
+    if (mat.map && mat.map.userData && mat.map.userData.clone) mat.map.dispose();
+    const base = look ? textureFor(look.tex) : null;
+    if (base) {
+      const t = base.clone(); t.needsUpdate = true; t.userData = { clone: true };
+      const [u, v] = repeatFor(panel.box); t.repeat.set(u, v); mat.map = t; mat.color.setHex(0xffffff);
+    } else { mat.map = null; mat.color.setHex(COLORS[panel.group] || 0xcccccc); }
+    mat.needsUpdate = true;
+  });
+}
+function applyMode() {
+  if (!cabGroup) return;
+  const dark = bgDark();
+  cabGroup.children.forEach(m => {
+    const mat = m.material, e = m.userData.edges;
+    mat.visible = viewMode !== "wire";
+    mat.transparent = viewMode === "xray"; mat.opacity = viewMode === "xray" ? 0.22 : 1; mat.depthWrite = viewMode !== "xray";
+    e.visible = viewMode !== "shaded";
+    m.userData.edgeColor = dark ? 0xd8dde2 : 0x2b2b2b;
+  });
+  fxMeshes.forEach(f => { f.material.wireframe = viewMode === "wire"; });
+  const bg = BACKGROUNDS.find(b => b.k === bgKey);
+  wrapEl.style.background = viewMode === "wire" ? "#ffffff" : (bg.css || "");
+  paintMeshes();
+}
+function paintMeshes() {
+  if (!cabGroup) return;
+  cabGroup.children.forEach(m => {
+    const c = m.userData.code, sel = c === selCode, hov = c === hoverCode;
+    m.material.emissive.setHex(sel || hov ? 0xd9480f : 0x000000);
+    m.material.emissiveIntensity = sel ? 0.65 : hov ? 0.35 : 0;
+    m.userData.edges.material.color.setHex(sel || hov ? 0xd9480f : m.userData.edgeColor);
+  });
+}
+function applyVisibility() {
+  if (!cabGroup) return;
+  const hideF = $("#hideFronts").checked;
+  cabGroup.children.forEach(m => {
+    const c = m.userData.code;
+    let v = !hiddenCodes.has(c);
+    if (v && hideF && m.userData.panel.group === "front" && c !== selCode && c !== hoverCode) v = false;
+    m.visible = v;
+  });
+  fxGroup.visible = $("#showHw").checked;
+  fxMeshes.forEach(f => {
+    const k = f.userData.kind;
+    f.visible = !hiddenKinds.has(k) && !(hideF && (k === "handle" || k === "hinge"));   // these belong to the fronts
+  });
+  document.querySelectorAll("#tree .prow").forEach(r => r.querySelector(".eye").classList.toggle("off", hiddenCodes.has(r.dataset.code)));
+  document.querySelectorAll("#tree [data-kind]").forEach(r => r.querySelector(".eye").classList.toggle("off", hiddenKinds.has(r.dataset.kind)));
+  document.querySelectorAll("#tree summary[data-group]").forEach(sm => {
+    const codes = curCab.panels.filter(p => p.group === sm.dataset.group).map(p => p.code);
+    sm.querySelector(".eye").classList.toggle("off", codes.every(c => hiddenCodes.has(c)));
+  });
+}
+function updateSelInfo() {
+  const box = $("#selInfo");
+  const p = curCab && selCode ? curCab.panels.find(x => x.code === selCode) : null;
+  if (!p) { box.textContent = ""; return; }
+  const inst = curCab.qty > 1 ? `${curCab.ref}.1` : curCab.ref;
+  const pl = placement.get(`${inst}|${p.code}`);
+  box.textContent = `${curCab.ref} ${p.code} â€” ${p.name}: ${p.l} Ã— ${p.w} Ã— ${p.t} mm, ${p.material}` +
+    `, edge banding ${fmtEdges(p)}${p.grain ? ", grain along length" : ""}` +
+    (pl ? `, cut from board ${pl.sheet} of ${pl.of} (${pl.material} ${pl.t} mm)` : "");
+}
+function selectPart(code, o = {}) {
+  selCode = code || null;
+  paintMeshes(); applyVisibility();
+  document.querySelectorAll("#tree .prow.sel").forEach(x => x.classList.remove("sel"));
+  if (selCode) {
+    const row = $(`#tree .prow[data-code="${CSS.escape(selCode)}"]`);
+    if (row) { row.classList.add("sel"); const d = row.closest("details"); if (d) d.open = true; if (o.scroll) row.scrollIntoView({ block: "nearest" }); }
+  }
+  updateSelInfo(); buildProps();
+}
+
+// ----- structure tree
+const eyeBtn = (on, fn) => { const b = el("button", { class: "eye" + (on ? "" : " off"), title: "Show / hide", text: "â—‰" });
+  b.addEventListener("click", e => { e.stopPropagation(); fn(); applyVisibility(); }); return b; };
+function buildTree() {
+  const box = $("#tree"); box.replaceChildren();
+  if (!curCab) return;
+  box.append(el("div", { style: "font-weight:700;padding:2px 4px", text: `${curCab.ref} â€” ${TYPES[curCab.type] || curCab.type}` }));
+  GROUP_ORDER.forEach(g => {
+    const list = curCab.panels.filter(p => p.group === g); if (!list.length) return;
+    const det = el("details", {}); det.open = g !== "drawerbox";
+    const sum = el("summary", { "data-group": g }, el("span", { text: GROUP_NAMES[g] }), el("span", { class: "cnt", text: String(list.length) }),
+      eyeBtn(true, () => {
+        const all = list.every(p => hiddenCodes.has(p.code));
+        list.forEach(p => all ? hiddenCodes.delete(p.code) : hiddenCodes.add(p.code));
+      }));
+    det.append(sum);
+    list.forEach(p => {
+      const row = el("div", { class: "prow", "data-code": p.code },
+        eyeBtn(true, () => { hiddenCodes.has(p.code) ? hiddenCodes.delete(p.code) : hiddenCodes.add(p.code); }),
+        el("span", { text: p.code }), el("span", { class: "sz", text: `${p.l}Ã—${p.w}Ã—${p.t}` }));
+      row.addEventListener("mouseenter", () => { hoverCode = p.code; paintMeshes(); applyVisibility(); });
+      row.addEventListener("mouseleave", () => { hoverCode = null; paintMeshes(); applyVisibility(); });
+      row.addEventListener("click", () => selectPart(selCode === p.code ? null : p.code));
+      det.append(row);
+    });
+    box.append(det);
+  });
+  const kinds = [...new Set((curCab.fixtures || []).map(f => f.kind))];
+  if (kinds.length) {
+    const det = el("details", {}); det.open = false;
+    det.append(el("summary", {}, el("span", { text: "Hardware" }), el("span", { class: "cnt", text: String(curCab.fixtures.length) })));
+    kinds.forEach(k => {
+      const n = curCab.fixtures.filter(f => f.kind === k).length;
+      det.append(el("div", { class: "prow", "data-kind": k, style: "cursor:default" },
+        eyeBtn(true, () => { hiddenKinds.has(k) ? hiddenKinds.delete(k) : hiddenKinds.add(k); }),
+        el("span", { text: FX_NAMES[k] || k }), el("span", { class: "sz", text: "Ã— " + n })));
+    });
+    det.append(el("div", { class: "note", style: "padding:2px 18px", text: "Fixings are drawn as indicators; exact quantities are in the hardware list." }));
+    box.append(det);
+  }
+}
+
+// ----- properties and appearance
+function assignLook(texId, scope) {
+  const p = selCode ? curCab.panels.find(x => x.code === selCode) : null;
+  if (scope === "part" && p) partLooks[curCab.ref + "|" + p.code] = { tex: texId };
+  else if (scope === "material" && p) materialLooks[p.material] = { tex: texId };
+  else if (scope === "cabinet") curCab.panels.forEach(q => { partLooks[curCab.ref + "|" + q.code] = { tex: texId }; });
+  else if (scope === "all") {
+    Object.keys(partLooks).forEach(k => delete partLooks[k]);
+    result.cutlist.forEach(r => { materialLooks[r.material] = { tex: texId }; });
+  } else return;
+  styleLooks(); applyMode(); buildProps();
+}
+function resetLook(scope) {
+  const p = selCode ? curCab.panels.find(x => x.code === selCode) : null;
+  if (scope === "part" && p) delete partLooks[curCab.ref + "|" + p.code];
+  else if (scope === "material" && p) delete materialLooks[p.material];
+  else if (scope === "cabinet") curCab.panels.forEach(q => delete partLooks[curCab.ref + "|" + q.code]);
+  else if (scope === "all") { Object.keys(partLooks).forEach(k => delete partLooks[k]); Object.keys(materialLooks).forEach(k => delete materialLooks[k]); }
+  styleLooks(); applyMode(); buildProps();
+}
+function buildProps() {
+  const box = $("#props"); box.replaceChildren();
+  if (!curCab) return;
+  const p = selCode ? curCab.panels.find(x => x.code === selCode) : null;
+  const dims = p ? [p.box.w, p.box.h, p.box.d] : [curCab.w, curCab.h, curCab.d];
+  box.append(el("div", { class: "note", text: p ? "Properties â€” selected part" : "Properties â€” cabinet" }),
+    el("div", { style: "font-weight:700", text: p ? `${curCab.ref} ${p.code}` : curCab.ref }),
+    el("div", { class: "propgrid" }, ...["Width", "Height", "Depth"].map((l, i) => el("div", {}, el("small", { text: l }), String(Math.round(dims[i] * 10) / 10)))));
+  if (p) box.append(el("div", { class: "note", text: `${p.name} Â· cut ${p.l} Ã— ${p.w} Ã— ${p.t} mm Â· ${p.material} Â· edges ${fmtEdges(p)}${p.grain ? " Â· grain along length" : ""}` }));
+  box.append(el("div", { class: "note", style: "margin-top:8px", text: "Appearance (preview only)" }));
+  const cur = p ? (lookFor(curCab, p) || {}).tex : null;
+  const tx = el("div", { class: "tex" });
+  TEXTURES.concat(customDefs).forEach(def => {
+    const b = el("button", { title: def.name, class: cur === def.id ? "on" : "" });
+    b.style.backgroundImage = `url(${thumbFor(def)})`;
+    b.addEventListener("click", () => assignLook(def.id, lookScope));
+    tx.append(b);
+  });
+  box.append(tx);
+  const scope = el("select");
+  [["part", "Selected part", !!p], ["material", "All parts of this material", !!p], ["cabinet", "Whole cabinet", true], ["all", "All cabinets", true]]
+    .forEach(([v, t, ok]) => { if (ok) scope.append(el("option", { value: v, text: t })); });
+  const valid = [...scope.options].map(o => o.value);
+  lookScope = scopePref && valid.includes(scopePref) ? scopePref : (p ? "part" : "cabinet");
+  scope.value = lookScope; scope.addEventListener("change", () => { lookScope = scopePref = scope.value; });
+  const up = el("input", { type: "file", accept: "image/*", hidden: "" });
+  up.addEventListener("change", () => {
+    const f = up.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const id = "custom:" + f.name + ":" + customDefs.length, t = new THREE.Texture(img);
+        t.wrapS = t.wrapT = THREE.RepeatWrapping; t.needsUpdate = true; customTex[id] = t;
+        customDefs.push({ id, name: f.name, thumb: rd.result });
+        assignLook(id, lookScope);
+      };
+      img.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  });
+  box.append(el("div", { class: "row" }, el("label", {}, "Apply to ", scope),
+    el("button", { onclick: () => up.click(), text: "Upload imageâ€¦" }), up,
+    el("button", { onclick: () => resetLook(lookScope), text: "Reset" })));
+}
+
+// ----- build the cabinet
+function show3d(rowIdx, o = {}) {
+  if (!renderer) init3d();
+  const c = result.cabinets.find(x => x.idx === rowIdx);
+  [cabGroup, fxGroup].forEach(gr => { if (gr) { scene.remove(gr); gr.traverse(m => { if (m.geometry) m.geometry.dispose(); if (m.material && m.material.map && m.material.map.userData && m.material.map.userData.clone) m.material.map.dispose(); }); } });
+  cabGroup = null; fxGroup = null; fxMeshes = []; meshByCode = {}; curCab = c || null;
+  if (lastShownRow !== rowIdx) { hiddenCodes.clear(); hiddenKinds.clear(); clearMeasure(); lastShownRow = rowIdx; }
+  if (!o.keepEditor) buildEditor(rowIdx);
+  const msg = $("#cabMsg");
+  if (!c) {
+    const r = rows[rowIdx] || {};
+    msg.textContent = result.errors.find(e => e.startsWith((r.ref || "?") + ":")) || "This cabinet could not be built. Check its sizes.";
+    msg.classList.remove("hidden");
+    $("#tree").replaceChildren(); $("#props").replaceChildren(); $("#dims").textContent = ""; selCode = null; updateSelInfo();
+    return;
+  }
+  msg.classList.add("hidden");
+  cabGroup = new THREE.Group(); fxGroup = new THREE.Group();
+  const k = 0.001;
+  c.panels.forEach(p => {
+    const b = p.box;
+    const geo = new THREE.BoxGeometry(b.w * k, b.h * k, b.d * k);
+    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: COLORS[p.group] || 0xcccccc, roughness: 0.8 }));
+    m.position.set((b.x + b.w / 2) * k, (b.y + b.h / 2) * k, (b.z + b.d / 2) * k);
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0x2b2b2b }));
+    m.add(edges);
+    m.userData = { group: p.group, code: p.code, panel: p, edges, edgeColor: 0x2b2b2b };
+    cabGroup.add(m); meshByCode[p.code] = m;
+  });
+  (c.fixtures || []).forEach(f => {
+    const b = f.box; let geo;
+    if (f.shape === "cyl") {
+      const len = f.axis === "x" ? b.w : f.axis === "z" ? b.d : b.h;
+      const rad = (f.axis === "x" ? Math.min(b.h, b.d) : f.axis === "z" ? Math.min(b.w, b.h) : Math.min(b.w, b.d)) / 2;
+      geo = new THREE.CylinderGeometry(rad * k, rad * k, len * k, 14);
+      if (f.axis === "x") geo.rotateZ(Math.PI / 2); else if (f.axis === "z") geo.rotateX(Math.PI / 2);
+    } else geo = new THREE.BoxGeometry(b.w * k, b.h * k, b.d * k);
+    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: FX_COLORS[f.kind] || 0x888888, metalness: 0.35, roughness: 0.5 }));
+    m.position.set((b.x + b.w / 2) * k, (b.y + b.h / 2) * k, (b.z + b.d / 2) * k);
+    m.userData = { kind: f.kind }; fxGroup.add(m); fxMeshes.push(m);
+  });
+  const off = new THREE.Vector3(-c.w * k / 2, 0, -c.d * k / 2);
+  cabGroup.position.copy(off); fxGroup.position.copy(off);
+  scene.add(cabGroup); scene.add(fxGroup);
+  orthoSize = Math.max(c.h, c.w * 1.3) * k * 1.3; fitOrtho();
+  const newTarget = new THREE.Vector3(0, c.h * k / 2, 0);
+  if (o.keepCamera) {
+    const d = camera.position.clone().sub(controls.target);
+    controls.target.copy(newTarget); camera.position.copy(newTarget).add(d);
+  } else {
+    const R = Math.max(c.w, c.h, c.d) * k;
+    camera.position.set(R * 1.1, R * 0.9 + c.h * k * 0.3, R * 1.9);
+    if (camKind === "ortho") ortho.zoom = 1;
+    controls.target.copy(newTarget);
+  }
+  controls.update();
+  $("#dims").textContent = `${c.ref}: ${c.w} W Ã— ${c.h} H Ã— ${c.d}${c.upper_d ? " (upper " + c.upper_d + ")" : ""} D mm (fronts add ${result.settings.door_t} mm)`;
+  if (selCode && !c.panels.some(p => p.code === selCode)) selCode = null;
+  styleLooks(); buildTree(); applyMode();
+  selectPart(selCode);
+  resize3d();
+}
+
+// ----- toolbar wiring
+BACKGROUNDS.forEach(bg => {
+  const b = el("button", { class: "swatch" + (bg.k === bgKey ? " on" : ""), title: "Background" });
+  b.style.background = bg.swatch;
+  b.addEventListener("click", () => {
+    bgKey = bg.k; document.querySelectorAll("#bgSwatches .swatch").forEach((x, i) => x.classList.toggle("on", BACKGROUNDS[i].k === bgKey));
+    applyMode();
+  });
+  $("#bgSwatches").append(b);
+});
+$("#modeSeg").addEventListener("click", e => {
+  const b = e.target.closest("button[data-m]"); if (!b) return;
+  viewMode = b.dataset.m; document.querySelectorAll("#modeSeg button").forEach(x => x.classList.toggle("on", x === b));
+  applyMode();
+});
+$("#camSeg").addEventListener("click", e => { const b = e.target.closest("button[data-c]"); if (b) setCam(b.dataset.c); });
+$("#hideFronts").addEventListener("change", applyVisibility);
+$("#showHw").addEventListener("change", applyVisibility);
+$("#cabPick").addEventListener("change", e => { pickedRow = Number(e.target.value); selCode = null; show3d(pickedRow); if (!labelsDirty && $("#labelScope").value === "one") labelsDirty = true; refreshLazyTab(); });
+
+// ---------- parametric editor ----------
+const EDIT_FIELDS = [
+  ["ref", "Ref", "text"], ["type", "Type", "type"], ["qty", "Qty", "num"],
+  ["w", "Width", "num"], ["h", "Height", "num"], ["d", "Depth", "num"],
+  ["doors", "Doors", "num"], ["drawers", "Drawers", "num"], ["shelves", "Shelves", "num"],
+  ["t", "Board thick.", "num"],
+  ["base_h", "Base height", "bay"], ["base_d", "Base depth", "bay"], ["header_h", "Header", "bay"],
+];
+function buildEditor(i) {
+  const box = $("#edit"); box.replaceChildren();
+  const r = rows[i]; if (!r) return;
+  for (const [key, label, kind] of EDIT_FIELDS) {
+    if (kind === "bay" && r.type !== "bay") continue;
+    let input;
+    if (kind === "type") {
+      input = el("select"); for (const [k, v] of Object.entries(TYPES)) input.append(el("option", { value: k, text: v }));
+      input.value = r.type;
+      input.addEventListener("change", () => { r.type = input.value; buildEditor(i); scheduleRegen(); });
+    } else {
+      input = el("input", { type: kind === "text" ? "text" : "number", step: "any", min: 0 });
+      if (kind !== "text" && key === "d") input.placeholder = "auto";
+      input.value = r[key] ?? "";
+      input.addEventListener("input", () => {
+        r[key] = kind === "text" ? input.value : (input.value === "" ? null : Number(input.value));
+        scheduleRegen();
+      });
+    }
+    box.append(el("label", {}, label, input));
+  }
+}
+let regenTimer = null, regenSeq = 0;
+async function regen(o = {}) {
+  const st = $("#edStatus");
+  if (!rows.length) return;
+  if (rows.some(r => !(r.w > 0 && r.h > 0))) return status(st, "Width and height are needed.", true);
+  const my = ++regenSeq;
+  try {
+    const data = await runGenerate();
+    if (my !== regenSeq) return;
+    result = data; status(st, "");
+    renderResults({ keepRow: pickedRow, keepCamera: true, keepEditor: !!o.keepEditor });
+    renderTable();
+  } catch (e) { status(st, e.message, true); }
+}
+function scheduleRegen() { clearTimeout(regenTimer); regenTimer = setTimeout(() => regen({ keepEditor: true }), 300); }
+$("#dupBtn").addEventListener("click", () => {
+  const r = rows[pickedRow]; if (!r) return;
+  rows.splice(pickedRow + 1, 0, { ...r, ref: (r.ref || "C") + "-copy", flags: [], raw: "" });
+  pickedRow += 1; selCode = null; renderTable(); regen();
+});
+$("#delBtn").addEventListener("click", () => {
+  if (rows.length <= 1) return status($("#edStatus"), "At least one cabinet is needed.", true);
+  rows.splice(pickedRow, 1); pickedRow = Math.min(pickedRow, rows.length - 1); selCode = null;
+  renderTable(); regen();
+});
+
+// ---------- start ----------
+(async function () {
+  try {
+    const d = await (await fetch("/api/defaults")).json();
+    defaults = d.settings; settings = { ...defaults };
+  } catch { settings = {}; }
+  buildSettings(); renderTable();
+})();
+</script>
+</body>
+</html>
+
