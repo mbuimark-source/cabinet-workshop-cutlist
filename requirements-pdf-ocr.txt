@@ -1,0 +1,3 @@
+﻿Pillow
+pytesseract
+pdf2image
